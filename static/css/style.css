@@ -39,14 +39,14 @@ nav * { pointer-events: auto; }
 .site-name {
   font-size: 11px;
   letter-spacing: 0.3em;
-  color: var(--accent);
+  color: var(--text);
   text-decoration: none;
 }
 
 .nav-about {
   font-size: 10px;
   letter-spacing: 0.25em;
-  color: var(--dim);
+  color: var(--accent);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -61,6 +61,7 @@ nav * { pointer-events: auto; }
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #000;
 }
 
 #cmb-map {
@@ -68,6 +69,26 @@ nav * { pointer-events: auto; }
   height: 100%;
   object-fit: contain;
   display: block;
+  animation: mapPulse 8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes mapPulse {
+  0%   { filter: brightness(0.7) saturate(0.9); }
+  30%  { filter: brightness(1.1) saturate(1.5); }
+  60%  { filter: brightness(0.8) saturate(1.0); }
+  80%  { filter: brightness(1.2) saturate(1.6); }
+  100% { filter: brightness(0.7) saturate(0.9); }
+}
+
+#shimmer-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: screen;
 }
 
 #grid-canvas {
@@ -87,7 +108,7 @@ nav * { pointer-events: auto; }
   transform: translateX(-50%);
   font-size: 10px;
   letter-spacing: 0.2em;
-  color: var(--dim);
+  color: var(--accent);
   pointer-events: none;
   transition: opacity 0.5s;
   white-space: nowrap;
@@ -102,10 +123,10 @@ nav * { pointer-events: auto; }
   width: 380px;
   max-height: 80vh;
   overflow-y: auto;
-  background: var(--bubble-bg);
-  border: 1px solid rgba(200, 184, 154, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(4, 4, 8, 0.97);
+  border: 1px solid rgba(200, 184, 154, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 24px;
   z-index: 200;
   transition: opacity 0.2s;
@@ -139,7 +160,8 @@ nav * { pointer-events: auto; }
 
 .bubble-notable {
   font-size: 10px;
-  color: var(--dim);
+  color: var(--accent);
+  opacity: 0.75;
   line-height: 1.5;
   margin-bottom: 16px;
   font-style: italic;
@@ -156,7 +178,7 @@ nav * { pointer-events: auto; }
 .section-label {
   font-size: 9px;
   letter-spacing: 0.3em;
-  color: var(--dim);
+  color: var(--accent);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -183,7 +205,7 @@ nav * { pointer-events: auto; }
   line-height: 1.85;
   color: var(--text);
   white-space: pre-wrap;
-  min-height: 60px;
+  min-height: 156px; /* 7 lines × 12px × 1.85 line-height */
 }
 
 .bubble-message .signal-word {
@@ -192,7 +214,7 @@ nav * { pointer-events: auto; }
 
 .bubble-date {
   font-size: 9px;
-  color: var(--dim);
+  color: rgba(200, 184, 154, 0.65);
   margin-top: 14px;
   letter-spacing: 0.15em;
 }

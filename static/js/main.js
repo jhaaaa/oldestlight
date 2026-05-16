@@ -7,12 +7,87 @@ const NOISE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ·';
 let cells = [];          // lightweight metadata for all cells
 let hoveredCell = null;
 let selectedCell = null;
-let mapRect = null;      // bounding rect of the map image
 
-const canvas  = document.getElementById('grid-canvas');
-const ctx     = canvas.getContext('2d');
-const bubble  = document.getElementById('bubble');
-const hint    = document.getElementById('hint');
+const canvas        = document.getElementById('grid-canvas');
+const ctx           = canvas.getContext('2d');
+const shimmerCanvas = document.getElementById('shimmer-canvas');
+const shimmerCtx    = shimmerCanvas.getContext('2d');
+const bubble        = document.getElementById('bubble');
+const hint          = document.getElementById('hint');
+
+// ── Map image processing ──────────────────────────────────────────────────────
+
+async function processMapImage() {
+  const img = document.getElementById('cmb-map');
+  if (!img.complete) {
+    await new Promise(r => { img.onload = r; });
+  }
+
+  const off = document.createElement('canvas');
+  off.width  = img.naturalWidth;
+  off.height = img.naturalHeight;
+  const offCtx = off.getContext('2d');
+  offCtx.drawImage(img, 0, 0);
+
+  const id = offCtx.getImageData(0, 0, off.width, off.height);
+  const d  = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    if (lum < 20) continue;   // keep near-black (outside ellipse) as black
+    d[i]     = 255 - d[i];
+    d[i + 1] = 255 - d[i + 1];
+    d[i + 2] = 255 - d[i + 2];
+  }
+  offCtx.putImageData(id, 0, 0);
+
+  await new Promise(r => {
+    img.onload = r;
+    img.src = off.toDataURL('image/jpeg', 0.92);
+  });
+}
+
+// ── Shimmer ──────────────────────────────────────────────────────────────────
+
+function resizeShimmer() {
+  shimmerCanvas.width  = shimmerCanvas.offsetWidth;
+  shimmerCanvas.height = shimmerCanvas.offsetHeight;
+}
+
+function drawShimmer() {
+  const w = shimmerCanvas.width;
+  const h = shimmerCanvas.height;
+  if (!w || !h) return;
+
+  shimmerCtx.clearRect(0, 0, w, h);
+
+  // Scatter bright pixels randomly across the map area
+  const count = 350;
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const r = Math.random() * 3 + 1;
+    const bright = Math.random();
+
+    // Warm or cool shimmer to echo the CMB palette
+    const warmCool = Math.random();
+    let color;
+    if (warmCool > 0.6) {
+      color = `rgba(220,120,80,${bright * 0.7})`;   // warm
+    } else if (warmCool > 0.3) {
+      color = `rgba(80,140,220,${bright * 0.7})`;   // cool
+    } else {
+      color = `rgba(240,240,240,${bright * 0.4})`;  // white
+    }
+
+    shimmerCtx.beginPath();
+    shimmerCtx.arc(x, y, r, 0, Math.PI * 2);
+    shimmerCtx.fillStyle = color;
+    shimmerCtx.fill();
+  }
+}
+
+// Shimmer runs at ~12fps — subtle, not distracting
+setInterval(drawShimmer, 85);
 
 // ── Mollweide projection ────────────────────────────────────────────────────
 
@@ -37,34 +112,47 @@ function galacticToMollweide(glon, glat) {
   return { x, y };  // x ∈ [-2√2, 2√2], y ∈ [-√2, √2]
 }
 
+function getImageBounds() {
+  const img = document.getElementById('cmb-map');
+  const cw = canvas.width;
+  const ch = canvas.height;
+  const aspect = (img.naturalWidth && img.naturalHeight)
+    ? img.naturalWidth / img.naturalHeight
+    : 2;
+  let iw, ih;
+  if (cw / ch > aspect) { ih = ch; iw = ih * aspect; }
+  else                   { iw = cw; ih = iw / aspect; }
+  return { left: (cw - iw) / 2, top: (ch - ih) / 2, width: iw, height: ih };
+}
+
+// Grid extends 1% past image left edge, flush with image right edge
+const GRID_X_LEFT  = 0.01;
+const GRID_X_SCALE = 1 + GRID_X_LEFT;  // total horizontal span = 1.01
+
 function mollweideToScreen(x, y, w, h) {
-  // Mollweide extent: x ∈ [-2√2, 2√2], y ∈ [-√2, √2]
-  // The healpy map image has some padding — empirically ~5% on each side
-  const pad = 0.05;
-  const sx = (x / (2 * Math.SQRT2) * (1 - 2*pad) + 0.5 + pad/2) * w;
-  const sy = (1 - (y / Math.SQRT2 * (1 - 2*pad) / 2 + 0.5 + pad/2)) * h;
+  const { left, top, width, height } = getImageBounds();
+  const sx = left - GRID_X_LEFT * width + (x / (4 * Math.SQRT2) + 0.5) * GRID_X_SCALE * width;
+  const sy = top  + (0.5 - y / (2 * Math.SQRT2)) * height;
   return { sx, sy };
 }
 
 function screenToGalactic(px, py, w, h) {
-  const pad = 0.05;
-  // Inverse
-  const nx = ((px / w) - 0.5 - pad/2) / (1 - 2*pad);  // -0.5 to 0.5
-  const ny = (0.5 + pad/2 - (py / h)) / (1 - 2*pad);   // -0.5 to 0.5
+  const { left, top, width, height } = getImageBounds();
+  const xNorm = (px - left) / width;
+  const yNorm = (py - top)  / height;
 
-  const x = nx * 2 * Math.SQRT2;
-  const y = ny * 2 * Math.SQRT2;
+  const mx = ((xNorm + GRID_X_LEFT) / GRID_X_SCALE - 0.5) * 4 * Math.SQRT2;  // Mollweide x
+  const my = (0.5 - yNorm) * 2 * Math.SQRT2;                                   // Mollweide y
 
-  // Check inside ellipse
-  if ((x / (2 * Math.SQRT2)) ** 2 + (y / Math.SQRT2) ** 2 > 1) return null;
+  if ((mx / (2 * Math.SQRT2)) ** 2 + (my / Math.SQRT2) ** 2 > 1) return null;
 
-  const theta = Math.asin(Math.max(-1, Math.min(1, y / Math.SQRT2)));
+  const theta = Math.asin(Math.max(-1, Math.min(1, my / Math.SQRT2)));
   const sinPhi = (2 * theta + Math.sin(2 * theta)) / Math.PI;
   const glat = Math.asin(Math.max(-1, Math.min(1, sinPhi))) * 180 / Math.PI;
 
   const cosTheta = Math.cos(theta);
   if (Math.abs(cosTheta) < 1e-9) return { glon: 0, glat };
-  let lambda = Math.PI * x / (2 * Math.SQRT2 * cosTheta);
+  let lambda = Math.PI * mx / (2 * Math.SQRT2 * cosTheta);
   let glon = lambda * 180 / Math.PI;
   if (glon < 0) glon += 360;
   return { glon, glat };
@@ -92,26 +180,48 @@ function cellCorners(col, row, w, h) {
   });
 }
 
-function drawCell(col, row, fillColor, strokeColor) {
+function drawCell(col, row, fillColor, strokeColor, lineWidth = 1) {
   const corners = cellCorners(col, row, canvas.width, canvas.height);
   ctx.beginPath();
   ctx.moveTo(corners[0].sx, corners[0].sy);
   for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].sx, corners[i].sy);
   ctx.closePath();
   if (fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
-  if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = 1; ctx.stroke(); }
+  if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
 }
+
+function drawGrid() {
+  ctx.save();
+  ctx.lineWidth = 0.7;
+  for (let row = 0; row < GRID_ROWS; row++) {
+    for (let col = 0; col < GRID_COLS; col++) {
+      const opacity = Math.random() * 0.35 + 0.05;
+      ctx.strokeStyle = `rgba(255,255,255,${opacity.toFixed(2)})`;
+      const corners = cellCorners(col, row, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.moveTo(corners[0].sx, corners[0].sy);
+      for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].sx, corners[i].sy);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// Slow grid flicker — signal interference aesthetic
+setInterval(() => redraw(), 250);
 
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
   if (hoveredCell && (!selectedCell ||
     hoveredCell.col !== selectedCell.col || hoveredCell.row !== selectedCell.row)) {
     drawCell(hoveredCell.col, hoveredCell.row,
-      'rgba(200,184,154,0.08)', 'rgba(200,184,154,0.25)');
+      'rgba(200,184,154,0.2)', 'rgba(200,184,154,0.8)', 1.5);
   }
   if (selectedCell) {
     drawCell(selectedCell.col, selectedCell.row,
-      'rgba(200,184,154,0.15)', 'rgba(200,184,154,0.6)');
+      'rgba(200,184,154,0.25)', 'rgba(200,184,154,1.0)', 2);
   }
 }
 
@@ -150,13 +260,20 @@ function animateText(el, finalText, duration = 2400) {
   });
 }
 
-function noiseText(el, length, interval_ms = 80) {
-  el.textContent = Array.from({ length }, () =>
-    NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)]).join('');
-  return setInterval(() => {
-    el.textContent = Array.from({ length }, () =>
-      NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)]).join('');
-  }, interval_ms);
+function snakeNoise(el, rows = 7, cols = 38, interval_ms = 80) {
+  function generate() {
+    const lines = [];
+    for (let r = 0; r < rows; r++) {
+      let line = '';
+      for (let c = 0; c < cols; c++) {
+        line += NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
+      }
+      lines.push(line);
+    }
+    el.textContent = lines.join('\n');
+  }
+  generate();
+  return setInterval(generate, interval_ms);
 }
 
 // ── Bubble ───────────────────────────────────────────────────────────────────
@@ -165,8 +282,11 @@ function positionBubble(col, row) {
   const corners = cellCorners(col, row, canvas.width, canvas.height);
   const centerX = corners.reduce((s, c) => s + c.sx, 0) / 4;
   const centerY = corners.reduce((s, c) => s + c.sy, 0) / 4;
-  const bw = bubble.offsetWidth  || 380;
-  const bh = bubble.offsetHeight || 400;
+  const bw = bubble.offsetWidth || 380;
+  // Use actual height if content is loaded, else assume near max-height
+  const bh = bubble.scrollHeight > 120
+    ? Math.min(bubble.scrollHeight, window.innerHeight * 0.8)
+    : Math.round(window.innerHeight * 0.78);
   const margin = 16;
   let left = centerX + 20;
   let top  = centerY - bh / 2;
@@ -207,10 +327,9 @@ async function showCell(col, row) {
   document.getElementById('bubble-date').textContent = '';
   document.getElementById('transmission-status').textContent = 'receiving ...';
 
-  // Noise while loading
+  // Snake noise block while API loads
   const msgEl    = document.getElementById('bubble-message');
-  const noiseLen = 120;
-  const noiseTmr = noiseText(msgEl, noiseLen);
+  const noiseTmr = snakeNoise(msgEl);
 
   // Fetch
   let data;
@@ -234,13 +353,14 @@ async function showCell(col, row) {
     wordsEl.textContent = '(masked region — no signal)';
   }
 
-  // Status
-  const statusEl = document.getElementById('transmission-status');
-  statusEl.textContent = data.is_new ? '— first received' : '';
+  document.getElementById('transmission-status').textContent = '';
 
-  // Message animation
-  if (data.message) {
-    await animateText(msgEl, data.message, 2600);
+  // Message animation — normalize API newlines so text wraps naturally
+  const message = data.message
+    ? data.message.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()
+    : '';
+  if (message) {
+    await animateText(msgEl, message, 2600);
   } else {
     msgEl.textContent = '(no words found at this location)';
   }
@@ -250,6 +370,9 @@ async function showCell(col, row) {
     document.getElementById('bubble-date').textContent =
       data.is_new ? `First received  ${data.generated_at}` : `Received  ${data.generated_at}`;
   }
+
+  // Reposition now that final content height is known
+  positionBubble(col, row);
 }
 
 // ── Events ───────────────────────────────────────────────────────────────────
@@ -285,12 +408,14 @@ document.getElementById('bubble-close').addEventListener('click', () => {
   redraw();
 });
 
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', () => { resizeCanvas(); resizeShimmer(); });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
 async function init() {
   resizeCanvas();
+  resizeShimmer();
+  await processMapImage();
   try {
     const res = await fetch('/api/cells');
     cells = await res.json();
