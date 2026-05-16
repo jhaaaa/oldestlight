@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLDEST LIGHT</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <nav>
+    <span class="site-name">OLDEST LIGHT</span>
+    <a href="/about" class="nav-about">ABOUT</a>
+  </nav>
+
+  <div id="map-container">
+    <img id="cmb-map" src="/static/cmb_map.jpg" alt="Cosmic Microwave Background">
+    <canvas id="grid-canvas"></canvas>
+  </div>
+
+  <div id="hint">Click anywhere on the map to receive a transmission</div>
+
+  <!-- Transmission bubble -->
+  <div id="bubble" class="hidden">
+    <button id="bubble-close">✕</button>
+
+    <div class="bubble-coords">
+      <span id="bubble-glon"></span>
+      <span id="bubble-glat"></span>
+    </div>
+
+    <div id="bubble-notable" class="bubble-notable hidden"></div>
+
+    <div class="bubble-section">
+      <div class="section-label">SIGNAL WORDS</div>
+      <div id="bubble-words" class="bubble-words"></div>
+    </div>
+
+    <div class="bubble-section">
+      <div class="section-label">
+        TRANSMISSION
+        <span id="transmission-status" class="transmission-status"></span>
+      </div>
+      <div id="bubble-message" class="bubble-message"></div>
+      <div id="bubble-date" class="bubble-date"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
