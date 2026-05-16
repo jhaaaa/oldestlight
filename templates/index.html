@@ -9,17 +9,22 @@
 <body>
 
   <nav>
-    <span class="site-name">OLDEST LIGHT</span>
+    <div class="site-name-group">
+      <span class="site-name">OLDEST LIGHT</span>
+      <span class="site-tagline">Planck 2018 SMICA map of the Cosmic Microwave Background</span>
+    </div>
     <a href="/about" class="nav-about">ABOUT</a>
   </nav>
 
   <div id="map-container">
     <img id="cmb-map" src="/static/cmb_map.jpg" alt="Cosmic Microwave Background">
+    <canvas id="depth-canvas"></canvas>
+    <canvas id="cosmic-web-canvas"></canvas>
     <canvas id="shimmer-canvas"></canvas>
     <canvas id="grid-canvas"></canvas>
   </div>
 
-  <div id="hint">Click anywhere on the map to receive a transmission</div>
+  <div id="hint">Click a block to decode a poem from the Cosmic Microwave Background</div>
 
   <!-- Transmission bubble -->
   <div id="bubble" class="hidden">
@@ -39,6 +44,12 @@
       </div>
       <div id="bubble-message" class="bubble-message"></div>
       <div id="bubble-date" class="bubble-date"></div>
+      <div id="bubble-decoder" class="bubble-decoder hidden"></div>
+    </div>
+
+    <div class="bubble-section" id="bubble-temps-section">
+      <div class="section-label">SIGNAL TEMPERATURES</div>
+      <div id="bubble-temps" class="bubble-temps"></div>
     </div>
 
     <div class="bubble-section">

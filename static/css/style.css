@@ -36,6 +36,13 @@ nav {
 
 nav * { pointer-events: auto; }
 
+.site-name-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+}
+
 .site-name {
   font-size: 11px;
   letter-spacing: 0.3em;
@@ -43,9 +50,16 @@ nav * { pointer-events: auto; }
   text-decoration: none;
 }
 
-.nav-about {
+.site-tagline {
   font-size: 10px;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  opacity: 1;
+}
+
+.nav-about {
+  font-size: 11px;
+  letter-spacing: 0.3em;
   color: var(--accent);
   text-decoration: none;
   transition: color 0.2s;
@@ -81,6 +95,22 @@ nav * { pointer-events: auto; }
   100% { filter: brightness(0.7) saturate(0.9); }
 }
 
+#depth-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#cosmic-web-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 #shimmer-canvas {
   position: absolute;
   inset: 0;
@@ -103,15 +133,16 @@ nav * { pointer-events: auto; }
 
 #hint {
   position: fixed;
-  bottom: 24px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: 12px;
+  letter-spacing: 0.05em;
   color: var(--accent);
   pointer-events: none;
   transition: opacity 0.5s;
   white-space: nowrap;
+  text-align: center;
 }
 
 #hint.hidden { opacity: 0; }
@@ -192,6 +223,14 @@ nav * { pointer-events: auto; }
   opacity: 0.7;
 }
 
+.bubble-temps {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+
 .bubble-words {
   font-size: 12px;
   line-height: 2;
@@ -217,6 +256,49 @@ nav * { pointer-events: auto; }
   color: rgba(200, 184, 154, 0.65);
   margin-top: 14px;
   letter-spacing: 0.15em;
+  min-height: 1.4em;
+}
+
+.bubble-decoder {
+  font-size: 9px;
+  color: rgba(200, 184, 154, 0.45);
+  margin-top: 5px;
+  letter-spacing: 0.15em;
+}
+
+.bubble-decoder.hidden { display: none; }
+
+@media (max-width: 600px) {
+  /* Bubble slides up from bottom as a sheet */
+  #bubble {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    max-height: 70vh;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 20px 20px 32px;
+  }
+
+  /* Larger tap target for close button */
+  #bubble-close {
+    top: 14px;
+    right: 16px;
+    font-size: 18px;
+    padding: 8px 12px;
+  }
+
+  /* Allow hint to wrap on narrow screens */
+  #hint {
+    white-space: normal;
+    width: 80%;
+    bottom: 16px;
+    font-size: 9px;
+  }
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
@@ -265,6 +347,19 @@ body.about-page {
 
 .about-content section {
   margin-bottom: 16px;
+}
+
+.codec-live {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--accent);
+  opacity: 0.7;
+  margin: 20px 0;
+  padding: 16px;
+  border-left: 2px solid rgba(200,184,154,0.2);
+  white-space: pre;
+  font-family: var(--mono);
+  transition: opacity 0.4s;
 }
 
 .codec-display {

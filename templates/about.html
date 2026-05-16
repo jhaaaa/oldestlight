@@ -9,7 +9,10 @@
 <body class="about-page">
 
   <nav>
-    <a href="/" class="site-name">OLDEST LIGHT</a>
+    <a href="/" class="site-name-group">
+      <span class="site-name">OLDEST LIGHT</span>
+      <span class="site-tagline">Planck 2018 SMICA map of the Cosmic Microwave Background</span>
+    </a>
     <span class="nav-about">ABOUT</span>
   </nav>
 
@@ -18,39 +21,96 @@
     <section>
       <h1>The oldest light in the universe</h1>
       <p>
-        The universe started with the Big Bang — 13.8 billion years ago.
-        For the first 380,000 years it was so hot that light couldn't travel through it.
-        Everything was opaque.
+        The universe we live in started with the Big Bang 13.8 billion years ago.
+        For the first 380,000 years, it was so hot that light couldn't travel through it.
+        Everything was opaque, everywhere.
       </p>
       <p>
-        Then, 380,000 years in, the universe cooled just enough for electrons and protons
-        to combine into hydrogen atoms. The moment that happened, the universe became
-        transparent — and all the light that had been trapped was released at once.
+        Then, the universe cooled just enough for electrons and protons to combine into
+        hydrogen atoms. The moment that happened, the universe became transparent and
+        all the light that had been trapped was released at once.
       </p>
       <p>
         That light is still traveling. It has been crossing space for 13.8 billion years,
-        in every direction. It fills all of space equally. It is 2.7 degrees above absolute zero.
+        arriving from every direction simultaneously. It fills all of space equally.
         When you point a detector at any point in the sky, you detect it.
       </p>
       <p>
-        This is the Cosmic Microwave Background. Not an echo of the Big Bang.
-        The actual light from that moment, still arriving.
+        This light is the Cosmic Microwave Background (CMB). The actual light from
+        that moment, still arriving.
+      </p>
+    </section>
+
+    <section>
+      <h2>The temperature</h2>
+      <p>
+        The CMB has a temperature of 2.725 Kelvin. Kelvin is measured from absolute
+        zero: the coldest anything can be, the point at which all molecular motion stops.
+        Absolute zero is −273.15°C. So 2.725K is −270.425°C: cold as cold gets.
+      </p>
+      <p>
+        But the temperature is not perfectly uniform. Across the full sky, the temperature
+        varies by roughly ±300 millionths of a degree. These fluctuations are so small
+        that they took decades of satellite technology to detect. These are shown on this
+        site as Signal Temperatures: the actual Celsius reading at the coordinates you
+        clicked, to seven decimal places.
+      </p>
+      <p>
+        Those tiny variations are not noise. They are the imprints of quantum fluctuations
+        from the first fraction of a second of the existence of our universe. These regions
+        of the infant universe were infinitesimally denser or rarer than their surroundings.
+        Gravity amplified them over billions of years into the large-scale structure of the
+        universe: galaxy filaments, voids, and clusters. Every star. This planet. The
+        temperature you read in the bubble is where all of that began.
+      </p>
+    </section>
+
+    <section>
+      <h2>The cold spot</h2>
+      <p>
+        The CMB Cold Spot at galactic coordinates l=264°, b=−48° is the largest anomaly
+        in the CMB. It is colder than its surroundings by about 70 millionths of a degree.
+        No agreed-upon explanation exists.
+      </p>
+      <p>
+        It might be nothing — a coincidence large enough to look meaningful but not
+        actually be so. It might be caused by an enormous empty region of space between
+        us and the CMB: a void so vast that light loses energy crossing it, arriving
+        colder than it should. It might be a scar left by a knot in the structure of
+        space itself, formed in the first moments after the Big Bang when the universe
+        was still deciding what shape to take. Or — and this has not been ruled out —
+        it might be where another universe bumped into ours.
+      </p>
+      <p>
+        None of these explanations has been confirmed. The Cold Spot remains open.
       </p>
     </section>
 
     <section>
       <h2>The map</h2>
       <p>
-        The map on this site is the Planck 2018 SMICA full-sky temperature map,
-        released by the European Space Agency. It was assembled from five years
-        of observations by the Planck satellite. It contains 50 million pixels,
-        each one a temperature measurement accurate to a few millionths of a degree.
+        The map featured on this site is the Planck 2018 SMICA full-sky temperature map,
+        released by the European Space Agency. SMICA — Spectral Matching Independent
+        Component Analysis — is the algorithm used to separate the CMB signal from
+        foreground interference such as interstellar dust, synchrotron radiation, and
+        other sources. The map was assembled from five years of observations by the
+        Planck satellite, and contains 50 million pixels, each a temperature measurement
+        accurate to a few millionths of a degree.
       </p>
       <p>
-        The tiny variations in color — the faint red and blue patches — are temperature
-        fluctuations of roughly ±300 millionths of a degree around the average of 2.7K.
-        These are the imprints of quantum events in the first fraction of a second of existence.
-        The seeds of every galaxy, every star, every planet. Including this one.
+        The map is displayed in Mollweide projection, a way of wrapping the full sphere
+        of the sky onto an ellipse, with the galactic center at the center of the image.
+        Galactic longitude runs left to right. Galactic latitude runs top to bottom.
+        Each block on the grid is 5° × 5° of sky.
+      </p>
+      <p>
+        The dark and blurry corridor across the center of the map is the galactic plane:
+        the disk of the Milky Way cutting across the center of the map. Our home galaxy
+        emits so strongly at microwave frequencies (from interstellar dust, gas, and
+        charged particles spiraling through magnetic fields) that its signal overwhelms
+        the CMB behind it. The Planck team masked that region out entirely; what you see
+        there is a smooth interpolation, not real data. In this region, we are, in a
+        sense, in the way of our own view.
       </p>
     </section>
 
@@ -61,63 +121,48 @@
         Numbers can be converted to letters. Letters can be searched for words.
       </p>
       <p>
-        The conversion is simple and deterministic — the same coordinates always
-        produce the same letters, always produce the same words.
-        No interpretation. No editorial choice. The codec is a lens, not an author.
+        The conversion is simple and deterministic: the same coordinates always produce
+        the same letters, always produce the same words. No interpretation. No editorial
+        choice.
       </p>
-      <pre class="codec-display">temperature  →  shift to positive  →  scale to 0–255  →  remainder of ÷26  →  letter A–Z</pre>
+      <pre class="codec-display">temperature (μK)  →  shift to positive  →  scale to 0–255  →  mod 26  →  letter A–Z</pre>
+
+      <div class="codec-live" id="codec-live" aria-hidden="true"></div>
+
       <p>
-        A patch of sky becomes a stream of hundreds of letters.
-        A word lattice then finds the longest real English words that tile that stream,
-        reading left to right — words that emerged from physics, not chosen, but found.
+        A 5° patch of sky contains hundreds of pixels. Each pixel produces a letter.
+        That stream of letters is then searched for the longest real English words that
+        tile it reading left to right. These words emerged from physics. Not so much
+        chosen, but found.
       </p>
     </section>
 
     <section>
-      <h2>The transmission</h2>
+      <h2>The transmissions</h2>
       <p>
-        When you click a patch of sky for the first time, the signal words from
-        that location are passed to an AI that speaks as the CMB itself —
-        not a metaphor for it, but the thing. 13.8 billion years old.
-        Present everywhere at once. Non-human in syntax and reference.
+        When a block of sky is clicked for the first time, the signal words from that
+        location are passed to an AI that is trained to speak as the CMB itself: 13.8
+        billion years old and present everywhere at once.
       </p>
       <p>
         The signal words are used as seeds. A word like <span class="mono">LIF</span>
-        may surface as <em>life</em> or <em>lifting</em> or <em>half-life</em>.
-        <span class="mono">HAP</span> may become <em>happen</em> or <em>perhaps</em>.
-        The root matters more than the exact form.
+        may surface as <em>life</em> or <em>lifting</em>. <span class="mono">HAP</span>
+        may become <em>happen</em> or <em>perhaps</em>.
       </p>
       <p>
-        The transmission is generated once per location and cached.
-        Every person who visits that patch of sky afterward reads what the first visitor received.
-        The CMB doesn't change. Neither does what it said.
-      </p>
-    </section>
-
-    <section>
-      <h2>The Cold Spot</h2>
-      <p>
-        The CMB Cold Spot — at galactic coordinates l=264°, b=48° — is the largest
-        anomaly in the Cosmic Microwave Background. It is colder than its surroundings
-        by about 70 millionths of a degree. No agreed-upon explanation exists.
+        The transmission is decoded once, permanently. Every person who visits that patch
+        of sky after the initial decoding reads exactly what the first person to click it
+        received. The CMB won't change in the human timescale, so neither will what it said.
       </p>
       <p>
-        Through the codec, at those coordinates, the words found were:
+        Each visitor may decode one block. Once decoded, that block glows softly on the
+        map. It is a record that someone decoded its signal. The location of the decoder
+        is recorded at city level: not who, only where on Earth the transmission was
+        picked up.
       </p>
-      <pre class="codec-display">CACK  KOR  SAK  BEY  PUA  OFF  FOB  ABE  MRU  FOT
-OXY   TRY  STAN MOI  LIF  VET  WET  COE  LOG  HAP</pre>
       <p>
-        The transmission it generated:
+        There are 2,592 blocks. Each one has been waiting 13.8 billion years.
       </p>
-      <blockquote>
-        CACKophony, silent now. KORonal light, ancient, SAKkadic movement, none.
-        BEYond perception, no PUAtrefaction. OFFset, all being.
-        FOBidden knowledge, not for me. ABErrant path, no.
-        MRUmur of newness, not here. FOTon, my very form.
-        OXYgen, not for my breath. TRY to find me. CONSTANT.
-        MOIety of all. LIFe begins, ends, always. VETeran of expanse.
-        WETness in nebula. COEval with beginning. LOGic of being. HAPPening now.
-      </blockquote>
     </section>
 
     <section class="credits">
@@ -131,6 +176,38 @@ OXY   TRY  STAN MOI  LIF  VET  WET  COE  LOG  HAP</pre>
     </section>
 
   </main>
+
+  <script>
+    const el = document.getElementById('codec-live');
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    function randTemp() {
+      return (Math.random() * 600 - 300).toFixed(1);
+    }
+
+    function tempToLetter(t) {
+      const shifted = parseFloat(t) + 500;
+      const scaled  = Math.round(shifted * 0.256) & 0xff;
+      return CHARS[scaled % 26];
+    }
+
+    function renderFrame() {
+      const rows = [];
+      for (let r = 0; r < 3; r++) {
+        const temps   = Array.from({ length: 6 }, randTemp);
+        const letters = temps.map(tempToLetter);
+        rows.push(
+          temps.map(t => t.padStart(7)).join('  ') +
+          '\n' +
+          letters.map(l => '      ' + l).join('  ')
+        );
+      }
+      el.textContent = rows.join('\n\n');
+    }
+
+    renderFrame();
+    setInterval(renderFrame, 1800);
+  </script>
 
 </body>
 </html>
