@@ -713,10 +713,6 @@ canvas.addEventListener('touchend', e => {
     const moved   = Math.sqrt(dx * dx + dy * dy);
     const elapsed = Date.now() - touchStartTime;
     if (moved < 12 && elapsed < 350) {
-      if (window.visualViewport && window.visualViewport.scale > 1.05) {
-        hint.textContent = 'Zoom out to tap a block';
-        return;
-      }
       const r     = canvas.getBoundingClientRect();
       const coord = screenToGalactic(touch.clientX - r.left, touch.clientY - r.top,
         canvas.width, canvas.height);
