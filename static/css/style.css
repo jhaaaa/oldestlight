@@ -181,7 +181,7 @@ nav * { pointer-events: auto; }
 #bubble-close:hover { color: var(--text); }
 
 .coords-label {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.3em;
   color: var(--dim);
   margin-bottom: 6px;
@@ -260,7 +260,7 @@ nav * { pointer-events: auto; }
 
 .bubble-date {
   font-size: 10px;
-  color: rgba(200, 184, 154, 0.6);
+  color: var(--text);
   margin-top: 14px;
   letter-spacing: 0.1em;
   min-height: 1.4em;
@@ -268,7 +268,7 @@ nav * { pointer-events: auto; }
 
 .bubble-decoder {
   font-size: 10px;
-  color: rgba(200, 184, 154, 0.6);
+  color: var(--text);
   margin-top: 5px;
   letter-spacing: 0.1em;
 }
@@ -304,7 +304,7 @@ nav * { pointer-events: auto; }
     white-space: normal;
     width: 80%;
     bottom: 16px;
-    font-size: 9px;
+    font-size: 11px;
   }
 }
 
