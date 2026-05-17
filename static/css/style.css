@@ -164,12 +164,12 @@ a.nav-about {
   position: fixed;
   width: 380px;
   max-height: 80vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: rgba(4, 4, 8, 0.97);
   border: 1px solid rgba(200, 184, 154, 0.35);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  padding: 24px;
   z-index: 200;
   transition: opacity 0.2s;
 }
@@ -187,9 +187,16 @@ a.nav-about {
   padding: 4px 8px;
   transition: color 0.15s;
   font-family: var(--mono);
+  z-index: 1;
 }
 
 #bubble-close:hover { color: var(--text); }
+
+#bubble-inner {
+  overflow-y: auto;
+  flex: 1;
+  padding: 24px;
+}
 
 .coords-label {
   font-size: 10px;
@@ -297,6 +304,9 @@ a.nav-about {
     border-right: none;
     border-bottom: none;
     border-radius: 0;
+  }
+
+  #bubble-inner {
     padding: 20px 20px 32px;
   }
 
@@ -319,9 +329,9 @@ a.nav-about {
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 
-#bubble::-webkit-scrollbar { width: 3px; }
-#bubble::-webkit-scrollbar-track { background: transparent; }
-#bubble::-webkit-scrollbar-thumb { background: rgba(200,184,154,0.2); }
+#bubble-inner::-webkit-scrollbar { width: 3px; }
+#bubble-inner::-webkit-scrollbar-track { background: transparent; }
+#bubble-inner::-webkit-scrollbar-thumb { background: rgba(200,184,154,0.2); }
 
 /* ── About page ────────────────────────────────────────────────────────────── */
 
