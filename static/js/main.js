@@ -518,6 +518,7 @@ async function showCell(col, row) {
   // Show bubble with coords immediately
   bubble.classList.remove('hidden');
   positionBubble(col, row);
+  syncBubbleZoom();
 
   const metadata = cells.find(c => c.col === col && c.row === row);
   const glon = metadata?.glon ?? col * 5 + 2.5;
@@ -677,8 +678,25 @@ canvas.addEventListener('click', e => {
   showCell(col, row);
 });
 
+function syncBubbleZoom() {
+  if (bubble.classList.contains('hidden')) return;
+  const scale = window.visualViewport ? window.visualViewport.scale : 1;
+  if (scale === 1) {
+    bubble.style.transform = '';
+  } else {
+    bubble.style.transformOrigin = isMobile() ? 'bottom center' : 'top left';
+    bubble.style.transform = `scale(${1 / scale})`;
+  }
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', syncBubbleZoom);
+  window.visualViewport.addEventListener('scroll', syncBubbleZoom);
+}
+
 document.getElementById('bubble-close').addEventListener('click', () => {
   bubble.classList.add('hidden');
+  bubble.style.transform = '';
   selectedCell = null;
   redraw();
 });
