@@ -626,16 +626,9 @@ async function showCell(col, row) {
 
   // Decoder location
   const decoderEl = document.getElementById('bubble-decoder');
-  if (data.decoder_city || data.decoder_lat != null) {
-    const parts = [];
-    if (data.decoder_city && data.decoder_country)
-      parts.push(`${data.decoder_city}, ${data.decoder_country}`);
-    if (data.decoder_lat != null && data.decoder_lon != null) {
-      const lat = data.decoder_lat >= 0 ? `${data.decoder_lat}°N` : `${Math.abs(data.decoder_lat)}°S`;
-      const lon = data.decoder_lon >= 0 ? `${data.decoder_lon}°E` : `${Math.abs(data.decoder_lon)}°W`;
-      parts.push(`${lat} ${lon}`);
-    }
-    decoderEl.textContent = `DECODED FROM  ${parts.join('  ·  ')}`;
+  if (data.decoder_city) {
+    const location = `${data.decoder_city}, ${data.decoder_country}`;
+    decoderEl.textContent = `Decoded from  ${location}`;
     decoderEl.classList.remove('hidden');
   }
 
