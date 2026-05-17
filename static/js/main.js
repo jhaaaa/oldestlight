@@ -514,7 +514,6 @@ function positionBubble(col, row) {
 async function showCell(col, row) {
   selectedCell = { col, row };
   redraw();
-  hint.classList.add('hidden');
 
   // Show bubble with coords immediately
   bubble.classList.remove('hidden');
@@ -684,21 +683,21 @@ document.getElementById('bubble-close').addEventListener('click', () => {
   redraw();
 });
 
+let touchStartPos  = null;
+let touchStartTime = 0;
+
 canvas.addEventListener('touchstart', e => {
-  if (e.touches.length > 1) return; // let pinch-to-zoom pass through
-  e.preventDefault();
-  const r     = canvas.getBoundingClientRect();
+  if (e.touches.length > 1) { touchStartPos = null; return; }
   const touch = e.touches[0];
-  cosmicMouse.x = touch.clientX - r.left;
-  cosmicMouse.y = touch.clientY - r.top;
-  const coord = screenToGalactic(touch.clientX - r.left, touch.clientY - r.top,
-    canvas.width, canvas.height);
-  if (!coord) return;
-  const { col, row } = cellFromGalactic(coord.glon, coord.glat);
-  showCell(col, row);
-}, { passive: false });
+  const r = canvas.getBoundingClientRect();
+  touchStartPos  = { x: touch.clientX, y: touch.clientY };
+  touchStartTime = Date.now();
+  cosmicMouse.x  = touch.clientX - r.left;
+  cosmicMouse.y  = touch.clientY - r.top;
+}, { passive: true }); // passive: true lets browser handle pinch-to-zoom
 
 canvas.addEventListener('touchmove', e => {
+  if (e.touches.length > 1) return; // let pinch pass through
   e.preventDefault();
   const r     = canvas.getBoundingClientRect();
   const touch = e.touches[0];
@@ -706,9 +705,28 @@ canvas.addEventListener('touchmove', e => {
   cosmicMouse.y = touch.clientY - r.top;
 }, { passive: false });
 
-canvas.addEventListener('touchend', () => {
-  cosmicMouse.x = -9999;
-  cosmicMouse.y = -9999;
+canvas.addEventListener('touchend', e => {
+  const touch = e.changedTouches[0];
+  if (touchStartPos && e.touches.length === 0) {
+    const dx      = touch.clientX - touchStartPos.x;
+    const dy      = touch.clientY - touchStartPos.y;
+    const moved   = Math.sqrt(dx * dx + dy * dy);
+    const elapsed = Date.now() - touchStartTime;
+    if (moved < 12 && elapsed < 350) {
+      const r     = canvas.getBoundingClientRect();
+      const coord = screenToGalactic(touch.clientX - r.left, touch.clientY - r.top,
+        canvas.width, canvas.height);
+      if (coord) {
+        const { col, row } = cellFromGalactic(coord.glon, coord.glat);
+        showCell(col, row);
+      }
+    }
+  }
+  if (e.touches.length === 0) {
+    touchStartPos = null;
+    cosmicMouse.x = -9999;
+    cosmicMouse.y = -9999;
+  }
 });
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeShimmer(); resizeDepth(); resizeCosmicWeb(); });

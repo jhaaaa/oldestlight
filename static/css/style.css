@@ -44,25 +44,35 @@ nav * { pointer-events: auto; }
 }
 
 .site-name {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.3em;
   color: var(--text);
   text-decoration: none;
 }
 
+a.site-name-group .site-name {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .site-tagline {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.05em;
   color: var(--accent);
   opacity: 1;
 }
 
 .nav-about {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.3em;
   color: var(--accent);
   text-decoration: none;
   transition: color 0.2s;
+}
+
+a.nav-about {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .nav-about:hover { color: var(--text); }
@@ -138,11 +148,12 @@ nav * { pointer-events: auto; }
   transform: translateX(-50%);
   font-size: 12px;
   letter-spacing: 0.05em;
-  color: var(--accent);
+  color: var(--text);
   pointer-events: none;
   transition: opacity 0.5s;
   white-space: nowrap;
   text-align: center;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 24px rgba(0,0,0,0.8);
 }
 
 #hint.hidden { opacity: 0; }
@@ -183,8 +194,8 @@ nav * { pointer-events: auto; }
 .coords-label {
   font-size: 10px;
   letter-spacing: 0.3em;
-  color: var(--dim);
-  margin-bottom: 6px;
+  color: var(--accent);
+  margin-bottom: 10px;
 }
 
 .bubble-coords {
@@ -199,7 +210,6 @@ nav * { pointer-events: auto; }
 .bubble-notable {
   font-size: 10px;
   color: var(--accent);
-  opacity: 0.75;
   line-height: 1.5;
   margin-bottom: 16px;
   font-style: italic;
@@ -216,7 +226,7 @@ nav * { pointer-events: auto; }
 .section-label {
   font-size: 10px;
   letter-spacing: 0.3em;
-  color: var(--dim);
+  color: var(--accent);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -227,7 +237,6 @@ nav * { pointer-events: auto; }
   font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--accent);
-  opacity: 0.7;
 }
 
 .bubble-temps {
@@ -336,9 +345,9 @@ body.about-page {
 }
 
 .about-content h2 {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.3em;
-  color: var(--dim);
+  color: var(--accent);
   font-weight: normal;
   margin-top: 48px;
   margin-bottom: 20px;
@@ -348,7 +357,7 @@ body.about-page {
 .about-content p {
   font-size: 13px;
   line-height: 1.9;
-  color: #b8b4ac;
+  color: var(--text);
   margin-bottom: 16px;
 }
 
@@ -360,7 +369,6 @@ body.about-page {
   font-size: 11px;
   line-height: 1.8;
   color: var(--accent);
-  opacity: 0.7;
   margin: 20px 0;
   padding: 16px;
   border-left: 2px solid rgba(200,184,154,0.2);
@@ -375,7 +383,8 @@ body.about-page {
   color: var(--accent);
   margin: 20px 0;
   padding: 16px;
-  border-left: 2px solid rgba(200,184,154,0.2);
+  background: rgba(200,184,154,0.06);
+  border: 1px solid rgba(200,184,154,0.18);
   white-space: pre-wrap;
 }
 
@@ -398,13 +407,13 @@ body.about-page {
 }
 
 .credits p {
-  font-size: 10px;
-  color: var(--dim);
+  font-size: 12px;
+  color: var(--text);
   line-height: 2;
 }
 
 .credits a {
-  color: var(--dim);
+  color: var(--text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
