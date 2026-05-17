@@ -518,7 +518,6 @@ async function showCell(col, row) {
   // Show bubble with coords immediately
   bubble.classList.remove('hidden');
   positionBubble(col, row);
-  updateBubbleForZoom();
 
   const metadata = cells.find(c => c.col === col && c.row === row);
   const glon = metadata?.glon ?? col * 5 + 2.5;
@@ -678,39 +677,8 @@ canvas.addEventListener('click', e => {
   showCell(col, row);
 });
 
-function updateBubbleForZoom() {
-  if (bubble.classList.contains('hidden') || !isMobile()) return;
-  const vv = window.visualViewport;
-  if (!vv || vv.scale <= 1.01) {
-    bubble.style.width = '';
-    bubble.style.left = '';
-    bubble.style.right = '';
-    bubble.style.top = '';
-    bubble.style.bottom = '';
-    bubble.style.maxHeight = '';
-    return;
-  }
-  // Size and position bubble in visual viewport coordinates.
-  // vv.width/height are already in CSS pixels adjusted for zoom,
-  // so an element set to these dimensions fills the visual viewport.
-  const maxH = Math.round(vv.height * 0.7);
-  bubble.style.width    = Math.round(vv.width)  + 'px';
-  bubble.style.left     = Math.round(vv.offsetLeft) + 'px';
-  bubble.style.right    = 'auto';
-  bubble.style.bottom   = 'auto';
-  bubble.style.top      = Math.round(vv.offsetTop + vv.height - maxH) + 'px';
-  bubble.style.maxHeight = maxH + 'px';
-}
-
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', updateBubbleForZoom);
-  window.visualViewport.addEventListener('scroll', updateBubbleForZoom);
-}
-
 document.getElementById('bubble-close').addEventListener('click', () => {
   bubble.classList.add('hidden');
-  bubble.style.width = bubble.style.left = bubble.style.right = '';
-  bubble.style.top   = bubble.style.bottom = bubble.style.maxHeight = '';
   selectedCell = null;
   redraw();
 });
@@ -745,6 +713,10 @@ canvas.addEventListener('touchend', e => {
     const moved   = Math.sqrt(dx * dx + dy * dy);
     const elapsed = Date.now() - touchStartTime;
     if (moved < 12 && elapsed < 350) {
+      if (window.visualViewport && window.visualViewport.scale > 1.05) {
+        hint.textContent = 'Zoom out to tap a block';
+        return;
+      }
       const r     = canvas.getBoundingClientRect();
       const coord = screenToGalactic(touch.clientX - r.left, touch.clientY - r.top,
         canvas.width, canvas.height);
