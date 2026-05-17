@@ -8,10 +8,12 @@ let cells = [];          // lightweight metadata for all cells
 let hoveredCell  = null;
 let selectedCell = null;
 const decodedCells = new Set();  // "col,row" keys for decoded blocks
+let currentCopy = null;          // { message, glon, glat } for clipboard
 
 const HINT_DEFAULT  = 'Click a block to decode a poem from the Cosmic Microwave Background';
 const HINT_DECODED  = 'Already decoded — click to read the transmission';
 const HINT_TOUCH    = 'Tap a block to decode a poem from the Cosmic Microwave Background';
+const HINT_ALL_DONE = 'All 2,592 transmissions decoded — click any purple coordinate to read';
 
 const canvas        = document.getElementById('grid-canvas');
 const ctx           = canvas.getContext('2d');
@@ -373,7 +375,7 @@ function drawGrid() {
       for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].sx, corners[i].sy);
       ctx.closePath();
       if (decodedCells.has(`${col},${row}`)) {
-        ctx.strokeStyle = 'rgba(200,184,154,0.20)';
+        ctx.strokeStyle = 'rgba(180,100,255,0.30)';
       } else {
         ctx.strokeStyle = `rgba(255,255,255,${(Math.random() * 0.35 + 0.05).toFixed(2)})`;
       }
@@ -388,31 +390,23 @@ function drawGrid() {
       const corners = cellCorners(col, row, canvas.width, canvas.height);
       if (!corners) continue;
 
-      const xs   = corners.map(c => c.sx);
-      const ys   = corners.map(c => c.sy);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-      const cx   = (minX + maxX) / 2;
-      const cy   = (minY + maxY) / 2;
-      const r    = Math.max(maxX - minX, maxY - minY) * 0.75;
+      const xs = corners.map(c => c.sx);
+      const ys = corners.map(c => c.sy);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+      const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      const r  = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * 0.75;
 
-      ctx.save();
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      glow.addColorStop(0,   'rgba(180,100,255,0.60)');
+      glow.addColorStop(0.5, 'rgba(140,60,220,0.25)');
+      glow.addColorStop(1,   'rgba(100,0,200,0)');
+
       ctx.beginPath();
       ctx.moveTo(corners[0].sx, corners[0].sy);
       for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].sx, corners[i].sy);
       ctx.closePath();
-      ctx.clip();
-
-      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      glow.addColorStop(0,   'rgba(200,184,154,0.55)');
-      glow.addColorStop(0.5, 'rgba(200,184,154,0.22)');
-      glow.addColorStop(1,   'rgba(200,184,154,0)');
       ctx.fillStyle = glow;
-      ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
-
-      ctx.restore();
+      ctx.fill();
     }
   }
 
@@ -540,6 +534,8 @@ async function showCell(col, row) {
   document.getElementById('bubble-date').textContent = '';
   document.getElementById('bubble-decoder').textContent = '';
   document.getElementById('bubble-decoder').classList.add('hidden');
+  document.getElementById('bubble-copy').classList.add('hidden');
+  currentCopy = null;
 
   const msgEl    = document.getElementById('bubble-message');
   const isNew    = !decodedCells.has(`${col},${row}`);
@@ -559,7 +555,7 @@ async function showCell(col, row) {
     const res = await fetch(`/api/cell/${col}/${row}`);
     if (res.status === 429) {
       if (noiseTmr) clearInterval(noiseTmr);
-      msgEl.textContent = 'Signal limit reached.\n\nExplore the glowing coordinates —\neach holds a transmission decoded\nby another explorer.';
+      msgEl.textContent = 'To enable wider participation,\neach visitor can decode only\none transmission.\n\nClick or tap a purple block to read\nalready decoded transmissions.';
       document.getElementById('transmission-status').textContent = '';
       positionBubble(col, row);
       return;
@@ -631,6 +627,12 @@ async function showCell(col, row) {
     decoderEl.classList.remove('hidden');
   }
 
+  // Enable copy button now that message is ready
+  if (message) {
+    currentCopy = { message, glon, glat };
+    document.getElementById('bubble-copy').classList.remove('hidden');
+  }
+
   // Reposition now that final content height is known
   positionBubble(col, row);
 }
@@ -681,6 +683,18 @@ document.getElementById('bubble-close').addEventListener('click', () => {
   bubble.classList.add('hidden');
   selectedCell = null;
   redraw();
+});
+
+document.getElementById('bubble-copy').addEventListener('click', () => {
+  if (!currentCopy) return;
+  const { message, glon, glat } = currentCopy;
+  const latStr = `b=${glat >= 0 ? '+' : ''}${glat.toFixed(1)}°`;
+  const text = `From OLDESTLIGHT.SPACE\n\n${message}\n\n— A poem from the Cosmic Microwave Background, galactic coordinates l=${glon.toFixed(1)}° ${latStr}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('bubble-copy');
+    btn.textContent = 'COPIED';
+    setTimeout(() => { btn.textContent = '⧉'; }, 2000);
+  });
 });
 
 let touchStartPos  = null;
@@ -753,6 +767,9 @@ async function init() {
     const decodedList = await decodedRes.json();
     decodedList.forEach(({ col, row }) => decodedCells.add(`${col},${row}`));
     redraw();
+    if (decodedCells.size >= GRID_COLS * GRID_ROWS) {
+      hint.textContent = HINT_ALL_DONE;
+    }
   } catch (e) {
     console.warn('Could not load cell metadata', e);
   }
