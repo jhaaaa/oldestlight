@@ -1,6 +1,3 @@
-requests
-google-genai
-healpy
-astropy
-matplotlib
 flask
+gunicorn
+google-genai

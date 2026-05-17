@@ -16,7 +16,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, abort, request
 
-from cmb_codec import generate_message
+from transmit import generate_message
 
 app     = Flask(__name__)
 GRID_F  = Path("grid.json")
