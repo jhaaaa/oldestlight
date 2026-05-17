@@ -677,21 +677,24 @@ canvas.addEventListener('click', e => {
   showCell(col, row);
 });
 
+const viewportMeta = document.querySelector('meta[name="viewport"]');
+const VIEWPORT_NORMAL  = 'width=device-width, initial-scale=1.0';
+const VIEWPORT_NOZOOM  = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0';
+
 function resetZoomThen(callback) {
   const vv = window.visualViewport;
   if (!vv || vv.scale <= 1.01) { callback(); return; }
-  const vp = document.querySelector('meta[name="viewport"]');
-  vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    vp.content = 'width=device-width, initial-scale=1.0';
-    callback();
-  }));
+  // Lock zoom at 1x; browser resets zoom, then we open the bubble
+  viewportMeta.content = VIEWPORT_NOZOOM;
+  setTimeout(callback, 80);
 }
 
 document.getElementById('bubble-close').addEventListener('click', () => {
   bubble.classList.add('hidden');
   selectedCell = null;
   redraw();
+  // Re-enable pinch-to-zoom now that bubble is closed
+  viewportMeta.content = VIEWPORT_NORMAL;
 });
 
 let touchStartPos  = null;
