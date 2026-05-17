@@ -518,7 +518,6 @@ async function showCell(col, row) {
   // Show bubble with coords immediately
   bubble.classList.remove('hidden');
   positionBubble(col, row);
-  syncBubbleZoom();
 
   const metadata = cells.find(c => c.col === col && c.row === row);
   const glon = metadata?.glon ?? col * 5 + 2.5;
@@ -678,25 +677,19 @@ canvas.addEventListener('click', e => {
   showCell(col, row);
 });
 
-function syncBubbleZoom() {
-  if (bubble.classList.contains('hidden')) return;
-  const scale = window.visualViewport ? window.visualViewport.scale : 1;
-  if (scale === 1) {
-    bubble.style.transform = '';
-  } else {
-    bubble.style.transformOrigin = isMobile() ? 'bottom center' : 'top left';
-    bubble.style.transform = `scale(${1 / scale})`;
-  }
-}
-
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', syncBubbleZoom);
-  window.visualViewport.addEventListener('scroll', syncBubbleZoom);
+function resetZoomThen(callback) {
+  const vv = window.visualViewport;
+  if (!vv || vv.scale <= 1.01) { callback(); return; }
+  const vp = document.querySelector('meta[name="viewport"]');
+  vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    vp.content = 'width=device-width, initial-scale=1.0';
+    callback();
+  }));
 }
 
 document.getElementById('bubble-close').addEventListener('click', () => {
   bubble.classList.add('hidden');
-  bubble.style.transform = '';
   selectedCell = null;
   redraw();
 });
@@ -736,7 +729,7 @@ canvas.addEventListener('touchend', e => {
         canvas.width, canvas.height);
       if (coord) {
         const { col, row } = cellFromGalactic(coord.glon, coord.glat);
-        showCell(col, row);
+        resetZoomThen(() => showCell(col, row));
       }
     }
   }
