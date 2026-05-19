@@ -14,7 +14,7 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, abort, request
+from flask import Flask, jsonify, render_template, abort, request, make_response
 
 from transmit import generate_message
 
@@ -109,6 +109,13 @@ def index():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+
+@app.route("/transmission")
+def transmission():
+    resp = make_response(render_template("transmission.html"))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @app.route("/api/decoded")

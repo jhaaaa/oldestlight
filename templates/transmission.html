@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OLDEST LIGHT — Transmission</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #000;
+      --text:   #e8e4dc;
+      --dim:    #888;
+      --accent: #c8b89a;
+      --mono:   'Courier New', Courier, monospace;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100%;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+      pointer-events: none;
+    }
+
+    nav * { pointer-events: auto; }
+
+    .nav-title {
+      font-size: 13px;
+      letter-spacing: 0.3em;
+      color: var(--text);
+    }
+
+    .nav-back {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .nav-back:hover { color: var(--text); }
+
+    #content {
+      padding: 72px 24px 48px;
+    }
+
+    .coords-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .bubble-coords {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .bubble-coords span + span::before { content: "  "; }
+
+    .bubble-notable {
+      font-size: 10px;
+      color: var(--accent);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+
+    .hidden { display: none; }
+
+    .bubble-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .transmission-status {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    .bubble-message {
+      font-size: 12px;
+      line-height: 1.85;
+      color: var(--text);
+      white-space: pre-wrap;
+      min-height: 156px;
+    }
+
+    .bubble-temps {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .bubble-words {
+      font-size: 12px;
+      line-height: 2;
+      color: var(--text);
+      word-spacing: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .bubble-date {
+      font-size: 10px;
+      color: var(--text);
+      margin-top: 14px;
+      letter-spacing: 0.1em;
+      min-height: 1.4em;
+    }
+
+    .bubble-decoder {
+      font-size: 10px;
+      color: var(--text);
+      margin-top: 5px;
+      letter-spacing: 0.1em;
+    }
+
+    .bubble-copy {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 0 0 8px;
+      font-family: var(--mono);
+      transition: color 0.15s;
+      line-height: 1;
+    }
+
+    .bubble-copy:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-title">OLDEST LIGHT</span>
+    <a href="/" class="nav-back">← MAP</a>
+  </nav>
+
+  <div id="content">
+    <div class="coords-label">GALACTIC COORDINATES</div>
+    <div class="bubble-coords">
+      <span id="glon"></span><span id="glat"></span>
+    </div>
+
+    <div id="notable" class="bubble-notable hidden"></div>
+
+    <div class="bubble-section">
+      <div class="section-label">
+        TRANSMISSION
+        <span id="status" class="transmission-status"></span>
+        <button id="copy-btn" class="bubble-copy hidden">⧉</button>
+      </div>
+      <div id="message" class="bubble-message"></div>
+      <div id="date" class="bubble-date"></div>
+      <div id="decoder" class="bubble-decoder hidden"></div>
+    </div>
+
+    <div class="bubble-section">
+      <div class="section-label">SIGNAL TEMPERATURES</div>
+      <div id="temps" class="bubble-temps"></div>
+    </div>
+
+    <div class="bubble-section">
+      <div class="section-label">SIGNAL WORDS</div>
+      <div id="words" class="bubble-words"></div>
+    </div>
+  </div>
+
+  <script>
+    const NOISE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ·';
+    let currentCopy = null;
+
+    function snakeNoise(el, rows, cols, interval_ms) {
+      rows = rows || 7; cols = cols || 38; interval_ms = interval_ms || 80;
+      function generate() {
+        const lines = [];
+        for (let r = 0; r < rows; r++) {
+          let line = '';
+          for (let c = 0; c < cols; c++) {
+            line += NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
+          }
+          lines.push(line);
+        }
+        el.textContent = lines.join('\n');
+      }
+      generate();
+      return setInterval(generate, interval_ms);
+    }
+
+    function animateText(el, finalText, duration) {
+      return new Promise(function(resolve) {
+        const steps = 36;
+        const step_ms = duration / steps;
+        let step = 0;
+        const timer = setInterval(function() {
+          step++;
+          const lockPoint = Math.floor(finalText.length * (step / steps));
+          let out = '';
+          for (let i = 0; i < finalText.length; i++) {
+            const ch = finalText[i];
+            if (i < lockPoint) {
+              out += ch;
+            } else if (ch === ' ' || ch === '\n' || ch === '\r') {
+              out += ch;
+            } else {
+              out += NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
+            }
+          }
+          el.textContent = out;
+          if (step >= steps) { clearInterval(timer); el.textContent = finalText; resolve(); }
+        }, step_ms);
+      });
+    }
+
+    async function load() {
+      const params  = new URLSearchParams(window.location.search);
+      const col     = parseInt(params.get('col'), 10);
+      const row     = parseInt(params.get('row'), 10);
+      const msgEl   = document.getElementById('message');
+      const statusEl = document.getElementById('status');
+
+      if (isNaN(col) || isNaN(row)) {
+        msgEl.textContent = '(invalid coordinates)';
+        return;
+      }
+
+      statusEl.textContent = 'receiving ...';
+      const noiseTmr = snakeNoise(msgEl);
+
+      let data;
+      try {
+        const res = await fetch('/api/cell/' + col + '/' + row);
+        if (res.status === 429) {
+          clearInterval(noiseTmr);
+          msgEl.textContent = 'To enable wider participation,\neach visitor can decode one transmission\nevery 5 minutes.\n\nTap a purple block to read\nalready decoded transmissions.';
+          statusEl.textContent = '';
+          return;
+        }
+        data = await res.json();
+      } catch (err) {
+        clearInterval(noiseTmr);
+        msgEl.textContent = '(transmission failed)';
+        statusEl.textContent = '';
+        return;
+      }
+
+      clearInterval(noiseTmr);
+
+      const glon = data.glon;
+      const glat = data.glat;
+      document.getElementById('glon').textContent = 'l=' + glon.toFixed(1) + '°';
+      document.getElementById('glat').textContent = 'b=' + (glat >= 0 ? '+' : '') + glat.toFixed(1) + '°';
+
+      const notableEl = document.getElementById('notable');
+      if (data.notable) {
+        notableEl.textContent = data.notable;
+        notableEl.classList.remove('hidden');
+      }
+
+      const tempsEl = document.getElementById('temps');
+      if (data.temp_min != null && data.temp_max != null) {
+        const CMB_MEAN_C = 2.725 - 273.15;
+        const fmtC = function(v) { return (CMB_MEAN_C + v / 1e6).toFixed(7) + ' °C'; };
+        const line = document.createElement('div');
+        line.textContent = fmtC(data.temp_min) + '  ·  ' + fmtC(data.temp_max);
+        tempsEl.appendChild(line);
+      } else {
+        tempsEl.textContent = '(no temperature data)';
+      }
+
+      const wordsEl = document.getElementById('words');
+      if (data.words && data.words.length) {
+        wordsEl.textContent = data.words.map(function(w) { return w[0].toUpperCase(); }).join('  ·  ');
+      } else {
+        wordsEl.textContent = '(masked region — no signal)';
+      }
+
+      statusEl.textContent = '';
+
+      const message = data.message
+        ? data.message.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()
+        : '';
+
+      if (message) {
+        if (data.is_new) {
+          await animateText(msgEl, message, 2600);
+        } else {
+          msgEl.textContent = message;
+        }
+      } else {
+        msgEl.textContent = '(no words found at this location)';
+      }
+
+      if (data.generated_at) {
+        document.getElementById('date').textContent =
+          data.is_new
+            ? 'First received  ' + data.generated_at
+            : 'Received  ' + data.generated_at;
+      }
+
+      const decoderEl = document.getElementById('decoder');
+      if (data.decoder_city) {
+        decoderEl.textContent = 'Decoded from  ' + data.decoder_city + ', ' + data.decoder_country;
+        decoderEl.classList.remove('hidden');
+      }
+
+      if (message) {
+        currentCopy = { message: message, glon: glon, glat: glat };
+        document.getElementById('copy-btn').classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('copy-btn').addEventListener('click', function() {
+      if (!currentCopy) return;
+      const msg    = currentCopy.message;
+      const glon   = currentCopy.glon;
+      const glat   = currentCopy.glat;
+      const latStr = 'b=' + (glat >= 0 ? '+' : '') + glat.toFixed(1) + '°';
+      const text   = 'From OLDESTLIGHT.SPACE\n\n' + msg +
+        '\n\n— A poem from the Cosmic Microwave Background, galactic coordinates l=' +
+        glon.toFixed(1) + '° ' + latStr;
+      navigator.clipboard.writeText(text).then(function() {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'COPIED';
+        setTimeout(function() { btn.textContent = '⧉'; }, 2000);
+      });
+    });
+
+    load();
+  </script>
+
+</body>
+</html>

@@ -60,8 +60,10 @@ async function processMapImage() {
 // ── Depth ────────────────────────────────────────────────────────────────────
 
 function drawDepth() {
-  const w = depthCanvas.width;
-  const h = depthCanvas.height;
+  const dpr = window.devicePixelRatio || 1;
+  depthCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = depthCanvas.offsetWidth;
+  const h = depthCanvas.offsetHeight;
   depthCtx.clearRect(0, 0, w, h);
 
   const { left, top, width, height } = getImageBounds();
@@ -95,8 +97,9 @@ function drawDepth() {
 }
 
 function resizeDepth() {
-  depthCanvas.width  = depthCanvas.offsetWidth;
-  depthCanvas.height = depthCanvas.offsetHeight;
+  const dpr = window.devicePixelRatio || 1;
+  depthCanvas.width  = depthCanvas.offsetWidth  * dpr;
+  depthCanvas.height = depthCanvas.offsetHeight * dpr;
   drawDepth();
 }
 
@@ -123,16 +126,18 @@ function flowAngle(x, y, t) {
 
 function initCosmicNodes() {
   cosmicNodes = [];
-  const w = cosmicCanvas.width;
-  const h = cosmicCanvas.height;
+  const w = cosmicCanvas.offsetWidth;
+  const h = cosmicCanvas.offsetHeight;
   for (let i = 0; i < NODE_COUNT; i++) {
     cosmicNodes.push({ x: Math.random() * w, y: Math.random() * h, vx: 0, vy: 0 });
   }
 }
 
 function drawCosmicWeb() {
-  const w = cosmicCanvas.width;
-  const h = cosmicCanvas.height;
+  const dpr = window.devicePixelRatio || 1;
+  cosmicCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = cosmicCanvas.offsetWidth;
+  const h = cosmicCanvas.offsetHeight;
   if (!w || !h || !cosmicNodes.length) { requestAnimationFrame(drawCosmicWeb); return; }
 
   const { left, top, width, height } = getImageBounds();
@@ -206,21 +211,25 @@ function drawCosmicWeb() {
 }
 
 function resizeCosmicWeb() {
-  cosmicCanvas.width  = cosmicCanvas.offsetWidth;
-  cosmicCanvas.height = cosmicCanvas.offsetHeight;
+  const dpr = window.devicePixelRatio || 1;
+  cosmicCanvas.width  = cosmicCanvas.offsetWidth  * dpr;
+  cosmicCanvas.height = cosmicCanvas.offsetHeight * dpr;
   initCosmicNodes();
 }
 
 // ── Shimmer ──────────────────────────────────────────────────────────────────
 
 function resizeShimmer() {
-  shimmerCanvas.width  = shimmerCanvas.offsetWidth;
-  shimmerCanvas.height = shimmerCanvas.offsetHeight;
+  const dpr = window.devicePixelRatio || 1;
+  shimmerCanvas.width  = shimmerCanvas.offsetWidth  * dpr;
+  shimmerCanvas.height = shimmerCanvas.offsetHeight * dpr;
 }
 
 function drawShimmer() {
-  const w = shimmerCanvas.width;
-  const h = shimmerCanvas.height;
+  const dpr = window.devicePixelRatio || 1;
+  shimmerCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = shimmerCanvas.offsetWidth;
+  const h = shimmerCanvas.offsetHeight;
   if (!w || !h) return;
 
   shimmerCtx.clearRect(0, 0, w, h);
@@ -279,8 +288,8 @@ function galacticToMollweide(glon, glat) {
 
 function getImageBounds() {
   const img = document.getElementById('cmb-map');
-  const cw = canvas.width;
-  const ch = canvas.height;
+  const cw = canvas.offsetWidth;
+  const ch = canvas.offsetHeight;
   const aspect = (img.naturalWidth && img.naturalHeight)
     ? img.naturalWidth / img.naturalHeight
     : 2;
@@ -375,8 +384,10 @@ function drawGrid() {
       for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].sx, corners[i].sy);
       ctx.closePath();
       if (decodedCells.has(`${col},${row}`)) {
-        ctx.strokeStyle = 'rgba(180,100,255,0.30)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(180,100,255,0.75)';
       } else {
+        ctx.lineWidth = 0.7;
         ctx.strokeStyle = `rgba(255,255,255,${(Math.random() * 0.35 + 0.05).toFixed(2)})`;
       }
       ctx.stroke();
@@ -417,7 +428,9 @@ function drawGrid() {
 setInterval(() => redraw(), 250);
 
 function redraw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
   drawGrid();
   if (hoveredCell && (!selectedCell ||
     hoveredCell.col !== selectedCell.col || hoveredCell.row !== selectedCell.row)) {
@@ -433,8 +446,9 @@ function redraw() {
 // ── Canvas sizing ────────────────────────────────────────────────────────────
 
 function resizeCanvas() {
-  canvas.width  = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = canvas.offsetWidth  * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
   redraw();
 }
 
@@ -637,6 +651,12 @@ async function showCell(col, row) {
   positionBubble(col, row);
 }
 
+// ── Transmission page (mobile) ───────────────────────────────────────────────
+
+function showCellOnMobile(col, row) {
+  window.location.href = `/transmission?col=${col}&row=${row}&v=2`;
+}
+
 // ── Events ───────────────────────────────────────────────────────────────────
 
 canvas.addEventListener('mousemove', e => {
@@ -671,6 +691,7 @@ canvas.addEventListener('mouseleave', () => {
 });
 
 canvas.addEventListener('click', e => {
+  if (isMobile()) return;  // touchend handles mobile taps via iframe
   const r = canvas.getBoundingClientRect();
   const coord = screenToGalactic(e.clientX - r.left, e.clientY - r.top,
     canvas.width, canvas.height);
@@ -696,6 +717,20 @@ document.getElementById('bubble-copy').addEventListener('click', () => {
     setTimeout(() => { btn.textContent = '⧉'; }, 2000);
   });
 });
+
+function resetZoom(callback) {
+  if (!window.visualViewport || window.visualViewport.scale <= 1.05) {
+    callback();
+    return;
+  }
+  const meta = document.querySelector('meta[name=viewport]');
+  const orig = meta.content;
+  meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0';
+  setTimeout(() => {
+    meta.content = orig;
+    setTimeout(callback, 50);
+  }, 300);
+}
 
 let touchStartPos  = null;
 let touchStartTime = 0;
@@ -732,7 +767,7 @@ canvas.addEventListener('touchend', e => {
         canvas.width, canvas.height);
       if (coord) {
         const { col, row } = cellFromGalactic(coord.glon, coord.glat);
-        showCell(col, row);
+        showCellOnMobile(col, row);
       }
     }
   }
@@ -744,6 +779,15 @@ canvas.addEventListener('touchend', e => {
 });
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeShimmer(); resizeDepth(); resizeCosmicWeb(); });
+
+// Refresh decoded cells when returning from the transmission page (bfcache restore)
+window.addEventListener('pageshow', e => {
+  if (!e.persisted) return;
+  fetch('/api/decoded').then(r => r.json()).then(list => {
+    list.forEach(({ col, row }) => decodedCells.add(`${col},${row}`));
+    redraw();
+  }).catch(() => {});
+});
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
@@ -758,6 +802,7 @@ async function init() {
   }
   await processMapImage();
   drawDepth();
+  redraw();
   try {
     const [cellsRes, decodedRes] = await Promise.all([
       fetch('/api/cells'),
