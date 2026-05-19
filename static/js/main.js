@@ -555,7 +555,7 @@ async function showCell(col, row) {
     const res = await fetch(`/api/cell/${col}/${row}`);
     if (res.status === 429) {
       if (noiseTmr) clearInterval(noiseTmr);
-      msgEl.textContent = 'To enable wider participation,\neach visitor can decode only\none transmission.\n\nClick or tap a purple block to read\nalready decoded transmissions.';
+      msgEl.textContent = 'To enable wider participation,\neach visitor can decode one transmission\nevery 5 minutes.\n\nClick or tap a purple block to read\nalready decoded transmissions.';
       document.getElementById('transmission-status').textContent = '';
       positionBubble(col, row);
       return;

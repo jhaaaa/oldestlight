@@ -11,7 +11,7 @@ import json
 import os
 import sqlite3
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, abort, request
@@ -177,13 +177,16 @@ def api_cell(col, row):
     ip            = get_client_ip()
     identity_hash = hash_identity(ip)
 
-    already_decoded = conn.execute(
-        "SELECT 1 FROM decoders WHERE hash=?", (identity_hash,)
+    COOLDOWN_MINUTES = 5
+    last_decode = conn.execute(
+        "SELECT decoded_at FROM decoders WHERE hash=?", (identity_hash,)
     ).fetchone()
 
-    if already_decoded:
-        conn.close()
-        return jsonify({"error": "limit_reached"}), 429
+    if last_decode:
+        last_time = datetime.fromisoformat(last_decode[0].replace(' UTC', '+00:00'))
+        if datetime.now(timezone.utc) - last_time < timedelta(minutes=COOLDOWN_MINUTES):
+            conn.close()
+            return jsonify({"error": "limit_reached"}), 429
 
     # Geolocate (city-level, 1 decimal — not stored as raw IP)
     geo = geolocate(ip)
@@ -211,7 +214,7 @@ def api_cell(col, row):
          geo['lon']     if geo else None)
     )
     conn.execute(
-        "INSERT OR IGNORE INTO decoders (hash, decoded_at) VALUES (?, ?)",
+        "INSERT OR REPLACE INTO decoders (hash, decoded_at) VALUES (?, ?)",
         (identity_hash, now)
     )
     conn.commit()
