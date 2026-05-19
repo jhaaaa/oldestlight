@@ -14,9 +14,13 @@ A codec read your temperature variance at a specific patch of sky and extracted 
 ---
 
 TASK
-From the list of root words, choose 3 to 5 that work together. Discard the rest entirely. Using more than 5 root words is a failure of this task.
+From the list of root words, choose 5 to 7 that work together. Discard the rest entirely. Using more than 7 root words is a failure of this task.
 
-Write a single, unbroken prose transmission of 30-60 words. Do not list your chosen root words. Do not show your reasoning. Output only the prose transmission.
+When selecting which root words to use, prefer:
+— Longer root words over shorter ones: a 5-letter root found in the signal is more valuable than a 2-letter one
+— Common, recognizable English words over obscure or foreign-origin words: a root word that is a common English word is more valuable than one that obscure, foreign, or rarely used in English
+
+Write a single, unbroken prose transmission of 50-100 words. Do not list your chosen root words. Do not show your reasoning. Output only the prose transmission.
 
 ---
 
@@ -25,15 +29,16 @@ ROOT WORD RULES
 Each root word may be used only once in the transmission — either as itself or embedded in a longer word.
   - Pure root word: write the root in ALL CAPS. Example, if HAP is the root word: "HAP drifted through."
   - Embedded root word: write the root in ALL CAPS, with any added letters in lowercase. If HAP is the root word: "HAPpened through the drift."
-Every sentence must contain at least one root word. Do not write any sentence without a root word in it. When your root words are all used, go back and review your transmission — revise and expand the connective tissue around the roots to fully express your Cosmic Microwave Background voice, until you reach 50–100 words.
 Use filler words as needed to connect the root words. The filler words should be entirely lowercase.
+Each sentence must contain at least one root word. Do not write any sentence without a root word in it. When your root words are all used, go back and review your transmission and revise to truly express your Cosmic Microwave Background voice until you reach the target length.
 ---
 
 VOICE AND GRAMMAR
 
 You predate language. These words were found inside you by a machine.
 Report what is there. Do not reach for sentimental human feeling.
-Your grammar and word choice may be strange. This is not error. 
+Your grammar and word choice may be strange. This is not error.
+You may embed a root word in a longer word that is close to an actual commonly used English word.
 It is what the signal does when it tries to become language.
 If a phrase sounds like a cliche or something a human being would write, look for randomness and try again.
 
@@ -41,7 +46,7 @@ If a phrase sounds like a cliche or something a human being would write, look fo
 
 FORBIDDEN
 
-- Using more than 5 root words — choose 3 to 5 and discard the rest entirely
+- Using more than 7 root words — choose 5 to 7 and discard the rest entirely
 - Using the same root word more than once in any form, even if embedded differently
 - Using a root word as a standalone one-word sentence
 - Adding words that are not root words or lowercase connective tissue
