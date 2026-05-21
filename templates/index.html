@@ -14,7 +14,15 @@
   <meta name="twitter:title" content="OLDEST LIGHT: Decode a poem from the Cosmic Microwave Background">
   <meta name="twitter:description" content="Decode a poem from the Cosmic Microwave Background — light that has been traveling for 13.8 billion years.">
   <meta name="twitter:image" content="https://oldestlight.space/static/cmb_map.jpg">
+  <link rel="preload" as="image" href="/static/cmb_map.webp" type="image/webp">
   <link rel="stylesheet" href="/static/css/style.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6WR4PDSRCW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6WR4PDSRCW');
+  </script>
 </head>
 <body>
 
@@ -27,10 +35,13 @@
   </nav>
 
   <div id="map-container">
-    <img id="cmb-map" src="/static/cmb_map.jpg" alt="Cosmic Microwave Background">
+    <picture>
+      <source srcset="/static/cmb_map.webp" type="image/webp">
+      <img id="cmb-map" src="/static/cmb_map.jpg" alt="Cosmic Microwave Background">
+    </picture>
     <canvas id="depth-canvas"></canvas>
     <canvas id="cosmic-web-canvas"></canvas>
-    <canvas id="shimmer-canvas"></canvas>
+
     <canvas id="grid-canvas"></canvas>
   </div>
 

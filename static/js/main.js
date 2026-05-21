@@ -17,8 +17,7 @@ const HINT_ALL_DONE = 'All 2,592 transmissions decoded — click any purple coor
 
 const canvas        = document.getElementById('grid-canvas');
 const ctx           = canvas.getContext('2d');
-const shimmerCanvas = document.getElementById('shimmer-canvas');
-const shimmerCtx    = shimmerCanvas.getContext('2d');
+
 const depthCanvas   = document.getElementById('depth-canvas');
 const depthCtx      = depthCanvas.getContext('2d');
 const cosmicCanvas  = document.getElementById('cosmic-web-canvas');
@@ -26,36 +25,6 @@ const cosmicCtx     = cosmicCanvas.getContext('2d');
 const bubble        = document.getElementById('bubble');
 const hint          = document.getElementById('hint');
 
-// ── Map image processing ──────────────────────────────────────────────────────
-
-async function processMapImage() {
-  const img = document.getElementById('cmb-map');
-  if (!img.complete) {
-    await new Promise(r => { img.onload = r; });
-  }
-
-  const off = document.createElement('canvas');
-  off.width  = img.naturalWidth;
-  off.height = img.naturalHeight;
-  const offCtx = off.getContext('2d');
-  offCtx.drawImage(img, 0, 0);
-
-  const id = offCtx.getImageData(0, 0, off.width, off.height);
-  const d  = id.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    if (lum < 20) continue;   // keep near-black (outside ellipse) as black
-    d[i]     = 255 - d[i];
-    d[i + 1] = 255 - d[i + 1];
-    d[i + 2] = 255 - d[i + 2];
-  }
-  offCtx.putImageData(id, 0, 0);
-
-  await new Promise(r => {
-    img.onload = r;
-    img.src = off.toDataURL('image/jpeg', 0.92);
-  });
-}
 
 // ── Depth ────────────────────────────────────────────────────────────────────
 
@@ -217,51 +186,6 @@ function resizeCosmicWeb() {
   initCosmicNodes();
 }
 
-// ── Shimmer ──────────────────────────────────────────────────────────────────
-
-function resizeShimmer() {
-  const dpr = window.devicePixelRatio || 1;
-  shimmerCanvas.width  = shimmerCanvas.offsetWidth  * dpr;
-  shimmerCanvas.height = shimmerCanvas.offsetHeight * dpr;
-}
-
-function drawShimmer() {
-  const dpr = window.devicePixelRatio || 1;
-  shimmerCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const w = shimmerCanvas.offsetWidth;
-  const h = shimmerCanvas.offsetHeight;
-  if (!w || !h) return;
-
-  shimmerCtx.clearRect(0, 0, w, h);
-
-  // Scatter bright pixels randomly across the map area
-  const count = 350;
-  for (let i = 0; i < count; i++) {
-    const x = Math.random() * w;
-    const y = Math.random() * h;
-    const r = Math.random() * 3 + 1;
-    const bright = Math.random();
-
-    // Warm or cool shimmer to echo the CMB palette
-    const warmCool = Math.random();
-    let color;
-    if (warmCool > 0.6) {
-      color = `rgba(220,120,80,${bright * 0.7})`;   // warm
-    } else if (warmCool > 0.3) {
-      color = `rgba(80,140,220,${bright * 0.7})`;   // cool
-    } else {
-      color = `rgba(240,240,240,${bright * 0.4})`;  // white
-    }
-
-    shimmerCtx.beginPath();
-    shimmerCtx.arc(x, y, r, 0, Math.PI * 2);
-    shimmerCtx.fillStyle = color;
-    shimmerCtx.fill();
-  }
-}
-
-// Shimmer runs at ~12fps — subtle, not distracting
-setInterval(drawShimmer, 85);
 
 // ── Mollweide projection ────────────────────────────────────────────────────
 
@@ -388,7 +312,7 @@ function drawGrid() {
         ctx.strokeStyle = 'rgba(180,100,255,0.75)';
       } else {
         ctx.lineWidth = 0.7;
-        ctx.strokeStyle = `rgba(255,255,255,${(Math.random() * 0.35 + 0.05).toFixed(2)})`;
+        ctx.strokeStyle = `rgba(255,255,255,${(Math.random() * 0.3 + 0.2).toFixed(2)})`;
       }
       ctx.stroke();
     }
@@ -425,7 +349,7 @@ function drawGrid() {
 }
 
 // Slow grid flicker — signal interference aesthetic
-setInterval(() => redraw(), 250);
+setInterval(() => redraw(), 600);
 
 function redraw() {
   const dpr = window.devicePixelRatio || 1;
@@ -778,7 +702,7 @@ canvas.addEventListener('touchend', e => {
   }
 });
 
-window.addEventListener('resize', () => { resizeCanvas(); resizeShimmer(); resizeDepth(); resizeCosmicWeb(); });
+window.addEventListener('resize', () => { resizeCanvas(); resizeDepth(); resizeCosmicWeb(); });
 
 // Refresh decoded cells when returning from the transmission page (bfcache restore)
 window.addEventListener('pageshow', e => {
@@ -793,14 +717,12 @@ window.addEventListener('pageshow', e => {
 
 async function init() {
   resizeCanvas();
-  resizeShimmer();
   resizeDepth();
   resizeCosmicWeb();
   requestAnimationFrame(drawCosmicWeb);
   if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
     hint.textContent = HINT_TOUCH;
   }
-  await processMapImage();
   drawDepth();
   redraw();
   try {

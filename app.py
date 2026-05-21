@@ -15,10 +15,12 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, abort, request, make_response
+from flask_compress import Compress
 
 from transmit import generate_message
 
 app     = Flask(__name__)
+Compress(app)
 GRID_F  = Path("grid.json")
 DB_F    = Path("messages.db")
 
@@ -100,6 +102,16 @@ def db():
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
+
+@app.after_request
+def add_cache_headers(response):
+    """Long-lived cache for static assets that rarely change."""
+    if request.path in ('/static/cmb_map.jpg', '/static/cmb_map.webp'):
+        response.headers['Cache-Control'] = 'public, max-age=604800'   # 1 week
+    elif request.path.startswith('/static/') and request.path.endswith(('.css', '.js')):
+        response.headers['Cache-Control'] = 'public, max-age=3600'     # 1 hour
+    return response
+
 
 @app.route("/")
 def index():

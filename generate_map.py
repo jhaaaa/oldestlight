@@ -14,9 +14,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
+from PIL import Image
 
-MAP_FILE = Path("planck_smica.fits")
-OUTPUT   = Path("static/cmb_map.jpg")
+MAP_FILE    = Path("planck_smica.fits")
+OUTPUT_RAW  = Path("/tmp/cmb_map_raw.jpg")
+OUTPUT_WEBP = Path("static/cmb_map.webp")
+OUTPUT_JPG  = Path("static/cmb_map.jpg")
 
 def main():
     print("Loading Planck map ...")
@@ -49,13 +52,29 @@ def main():
     for ax in fig.get_axes():
         ax.set_axis_off()
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUTPUT, bbox_inches="tight", pad_inches=0,
+    OUTPUT_RAW.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_WEBP.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(OUTPUT_RAW, bbox_inches="tight", pad_inches=0,
                 facecolor="black", dpi=150)
     plt.close()
 
-    size_kb = OUTPUT.stat().st_size // 1024
-    print(f"Saved: {OUTPUT}  ({size_kb}KB)")
+    print("Post-processing: color inversion + resize ...")
+    img = Image.open(OUTPUT_RAW).convert('RGB')
+    arr = np.array(img, dtype=np.float32)
+    lum = 0.299 * arr[:,:,0] + 0.587 * arr[:,:,1] + 0.114 * arr[:,:,2]
+    arr[lum >= 20] = 255 - arr[lum >= 20]
+    processed = Image.fromarray(arr.astype(np.uint8))
+
+    # Full-res WebP for display (crisp on all screens)
+    processed.save(OUTPUT_WEBP, 'WEBP', quality=75)
+
+    # Half-res JPEG for OG/Twitter meta tags
+    w, h = processed.size
+    small = processed.resize((w // 2, h // 2), Image.LANCZOS)
+    small.save(OUTPUT_JPG, 'JPEG', quality=88)
+
+    print(f"Saved: {OUTPUT_WEBP}  ({OUTPUT_WEBP.stat().st_size // 1024}KB)")
+    print(f"Saved: {OUTPUT_JPG}   ({OUTPUT_JPG.stat().st_size // 1024}KB)")
 
 
 if __name__ == "__main__":
